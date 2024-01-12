@@ -1,0 +1,9 @@
+<archetype>
+  <id>Practica_Aplicacion_de_Chat_Cliente-Servidor_en_Java</id>
+  <sources>
+    <source>src/main/java/App.java</source>
+  </sources>
+  <testSources>
+    <source>src/test/java/AppTest.java</source>
+  </testSources>
+</archetype>

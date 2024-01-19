@@ -59,9 +59,12 @@ public class ServidorChatMejorado {
                         break;
                     }
 
-                    // Reenviar el mensaje a todos los demás clientes
-                    for (ClienteHandler cliente : clientes) {
-                        cliente.enviarMensaje("[" + nombreUsuario + "]: " + mensajeCliente);
+                    // Comprobar si el mensaje es privado
+                    if (mensajeCliente.startsWith("@")) {
+                        procesarMensajePrivado(mensajeCliente);
+                    } else {
+                        // Reenviar el mensaje a todos los demás clientes
+                        broadcastMensaje("[" + nombreUsuario + "]: " + mensajeCliente);
                     }
                 }
             } catch (IOException e) {
@@ -73,10 +76,16 @@ public class ServidorChatMejorado {
             salida.println(mensaje);
         }
 
+        private void broadcastMensaje(String mensaje) {
+            for (ClienteHandler cliente : clientes) {
+                cliente.enviarMensaje(mensaje);
+            }
+        }
+
         private void salirDelChat() {
             clientes.remove(this);
-            enviarMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
-            enviarMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
+            broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
+            broadcastMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
         }
 
         private String obtenerUsuariosConectados() {
@@ -85,6 +94,29 @@ public class ServidorChatMejorado {
                 usuarios.append(cliente.nombreUsuario).append(", ");
             }
             return usuarios.length() > 2 ? usuarios.substring(0, usuarios.length() - 2) : "Ninguno";
+        }
+
+        private void procesarMensajePrivado(String mensaje) {
+            // Obtener el nombre de usuario al que se envía el mensaje privado
+            int indexEspacio = mensaje.indexOf(' ');
+            if (indexEspacio != -1) {
+                String destinatario = mensaje.substring(1, indexEspacio);
+                String mensajePrivado = mensaje.substring(indexEspacio + 1);
+
+                // Enviar el mensaje privado al destinatario
+                enviarMensajePrivado(destinatario, "[" + nombreUsuario + " PRIVADO]: " + mensajePrivado);
+            }
+        }
+
+        private void enviarMensajePrivado(String destinatario, String mensaje) {
+            for (ClienteHandler cliente : clientes) {
+                if (cliente.nombreUsuario.equals(destinatario)) {
+                    cliente.enviarMensaje(mensaje);
+                    return;
+                }
+            }
+            // Enviar un mensaje al remitente si el destinatario no está en línea
+            enviarMensaje("[Servidor]: El usuario '" + destinatario + "' no está en línea.");
         }
     }
 }

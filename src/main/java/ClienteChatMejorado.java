@@ -76,11 +76,18 @@ public class ClienteChatMejorado {
                 while (true) {
                     // Permitir al usuario enviar mensajes al servidor
                     String mensaje = scanner.nextLine();
-                    salida.println(mensaje);
 
-                    // Comprobar si el usuario quiere salir del chat
-                    if (mensaje.equalsIgnoreCase("salir")) {
-                        break;
+                    // Comprobar si el mensaje es privado
+                    if (mensaje.startsWith("@")) {
+                        salida.println(mensaje);
+                    } else {
+                        // Enviar el mensaje al servidor
+                        salida.println(mensaje);
+
+                        // Comprobar si el usuario quiere salir del chat
+                        if (mensaje.equalsIgnoreCase("salir")) {
+                            break;
+                        }
                     }
                 }
             } catch (IOException e) {

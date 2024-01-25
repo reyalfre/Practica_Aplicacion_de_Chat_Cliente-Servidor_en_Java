@@ -3,10 +3,11 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ServidorChatMejorado {
 
-    private static List<ClienteHandler> clientes = new ArrayList<>();
+    private static List<ClienteHandler> clientes = new CopyOnWriteArrayList<>();
     private static Queue<String> mensajesRecientes = new LinkedList<>();
 
     public static void main(String[] args) {
@@ -51,22 +52,28 @@ public class ServidorChatMejorado {
         public void run() {
             try (Scanner entrada = new Scanner(socket.getInputStream())) {
                 while (true) {
-                    String mensajeCliente = entrada.nextLine();
+                    try {
+                        String mensajeCliente = entrada.nextLine();
 
-                    // Comprobar si el usuario quiere salir del chat
-                    if (mensajeCliente.equalsIgnoreCase("salir")) {
+                        // Comprobar si el usuario quiere salir del chat
+                        if (mensajeCliente.equalsIgnoreCase("salir")) {
+                            salirDelChat();
+                            break;
+                        }
+
+                        // Comprobar si el mensaje es privado
+                        if (mensajeCliente.startsWith("@")) {
+                            procesarMensajePrivado(mensajeCliente);
+                        } else {
+                            // Reenviar el mensaje a todos los demás clientes
+                            broadcastMensaje("[" + nombreUsuario + "]: " + mensajeCliente);
+                            // Almacenar mensaje
+                            almacenarMensaje("[" + nombreUsuario + "]: " + mensajeCliente);
+                        }
+                    } catch (NoSuchElementException e) {
+                        // El cliente se desconectó inesperadamente
                         salirDelChat();
                         break;
-                    }
-
-                    // Comprobar si el mensaje es privado
-                    if (mensajeCliente.startsWith("@")) {
-                        procesarMensajePrivado(mensajeCliente);
-                    } else {
-                        // Reenviar el mensaje a todos los demás clientes
-                        broadcastMensaje("[" + nombreUsuario + "]: " + mensajeCliente);
-                        //Almacenar mensaje
-                        almacenarMensaje("[" + nombreUsuario + "]: " + mensajeCliente);
                     }
                 }
             } catch (IOException e) {
@@ -99,10 +106,18 @@ public class ServidorChatMejorado {
         }
 
         private void salirDelChat() {
-            clientes.remove(this);
+            Iterator<ClienteHandler> iterator = clientes.iterator();
+            while (iterator.hasNext()) {
+                ClienteHandler cliente = iterator.next();
+                if (cliente == this) {
+                    iterator.remove();
+                    break;
+                }
+            }
             broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
             broadcastMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
         }
+
 
         private String obtenerUsuariosConectados() {
             StringBuilder usuarios = new StringBuilder();

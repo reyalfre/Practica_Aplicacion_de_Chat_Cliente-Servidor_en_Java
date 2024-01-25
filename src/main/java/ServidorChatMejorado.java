@@ -2,13 +2,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class ServidorChatMejorado {
 
     private static List<ClienteHandler> clientes = new ArrayList<>();
+    private static Queue<String> mensajesRecientes = new LinkedList<>();
 
     public static void main(String[] args) {
         final int PUERTO = 12345;
@@ -39,6 +38,7 @@ public class ServidorChatMejorado {
                 this.salida = new PrintWriter(socket.getOutputStream(), true);
                 Scanner entrada = new Scanner(socket.getInputStream());
                 this.nombreUsuario = entrada.nextLine();
+                enviarMensajesRecientes();
                 enviarMensaje("[Servidor]: ¡Bienvenido, " + nombreUsuario + "!");
                 enviarMensaje("[Servidor]: Para salir del chat, escribe 'salir'.");
                 enviarMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
@@ -65,10 +65,26 @@ public class ServidorChatMejorado {
                     } else {
                         // Reenviar el mensaje a todos los demás clientes
                         broadcastMensaje("[" + nombreUsuario + "]: " + mensajeCliente);
+                        //Almacenar mensaje
+                        almacenarMensaje("[" + nombreUsuario + "]: " + mensajeCliente);
                     }
                 }
             } catch (IOException e) {
                 salirDelChat();
+            }
+        }
+        private void enviarMensajesRecientes() {
+            for (String mensaje : mensajesRecientes) {
+                salida.println(mensaje);
+            }
+        }
+        private void almacenarMensaje(String mensaje) {
+            // Almacenar el mensaje en la cola de mensajes recientes
+            mensajesRecientes.offer(mensaje);
+
+            // Mantener un máximo de 50 mensajes recientes
+            while (mensajesRecientes.size() > 50) {
+                mensajesRecientes.poll();
             }
         }
 

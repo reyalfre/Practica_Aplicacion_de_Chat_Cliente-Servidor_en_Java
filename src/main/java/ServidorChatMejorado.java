@@ -10,6 +10,18 @@ public class ServidorChatMejorado {
     private static List<ClienteHandler> clientes = new CopyOnWriteArrayList<>();
     private static Queue<String> mensajesRecientes = new LinkedList<>();
 
+    private static Set<String> coloresAsignados = new HashSet<>();
+
+    public static final String RESET = "\033[0m";  // Text Reset
+    public static final String BLACK = "\033[0;30m";   // BLACK
+    public static final String RED = "\033[0;31m";     // RED
+    public static final String GREEN = "\033[0;32m";   // GREEN
+    public static final String YELLOW = "\033[0;33m";  // YELLOW
+    public static final String BLUE = "\033[0;34m";    // BLUE
+    public static final String PURPLE = "\033[0;35m";  // PURPLE
+    public static final String CYAN = "\033[0;36m";    // CYAN
+    public static final String WHITE = "\033[0;37m";   // WHITE
+    private static final String[] COLORES_DISPONIBLES = {RESET, RED, GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE};
     public static void main(String[] args) {
         final int PUERTO = 12345;
 
@@ -32,6 +44,7 @@ public class ServidorChatMejorado {
         private Socket socket;
         private PrintWriter salida;
         private String nombreUsuario;
+        private String color="";
 
         public ClienteHandler(Socket socket) {
             this.socket = socket;
@@ -39,12 +52,26 @@ public class ServidorChatMejorado {
                 this.salida = new PrintWriter(socket.getOutputStream(), true);
                 Scanner entrada = new Scanner(socket.getInputStream());
                 this.nombreUsuario = entrada.nextLine();
+
+                // Asignar color al usuario
+                asignarColor();
+
                 enviarMensajesRecientes();
                 enviarMensaje("[Servidor]: ¡Bienvenido, " + nombreUsuario + "!");
                 enviarMensaje("[Servidor]: Para salir del chat, escribe 'salir'.");
                 enviarMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+
+        private void asignarColor() {
+            for (String color : COLORES_DISPONIBLES) {
+                if (!coloresAsignados.contains(color)) {
+                    this.color = color;
+                    coloresAsignados.add(color);
+                    break;
+                }
             }
         }
 
@@ -66,9 +93,9 @@ public class ServidorChatMejorado {
                             procesarMensajePrivado(mensajeCliente);
                         } else {
                             // Reenviar el mensaje a todos los demás clientes
-                            broadcastMensaje("[" + nombreUsuario + "]: " + mensajeCliente);
+                            broadcastMensaje(color + "[" + nombreUsuario + "]: " + mensajeCliente);
                             // Almacenar mensaje
-                            almacenarMensaje("[" + nombreUsuario + "]: " + mensajeCliente);
+                            almacenarMensaje(color + "[" + nombreUsuario + "]: " + mensajeCliente);
                         }
                     } catch (NoSuchElementException e) {
                         // El cliente se desconectó inesperadamente
@@ -78,13 +105,18 @@ public class ServidorChatMejorado {
                 }
             } catch (IOException e) {
                 salirDelChat();
+            } finally {
+                // Liberar el color asignado cuando el usuario sale del chat
+                coloresAsignados.remove(color);
             }
         }
+
         private void enviarMensajesRecientes() {
             for (String mensaje : mensajesRecientes) {
                 salida.println(mensaje);
             }
         }
+
         private void almacenarMensaje(String mensaje) {
             // Almacenar el mensaje en la cola de mensajes recientes
             mensajesRecientes.offer(mensaje);
@@ -117,7 +149,6 @@ public class ServidorChatMejorado {
             broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
             broadcastMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
         }
-
 
         private String obtenerUsuariosConectados() {
             StringBuilder usuarios = new StringBuilder();

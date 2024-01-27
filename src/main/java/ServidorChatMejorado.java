@@ -59,7 +59,7 @@ public class ServidorChatMejorado {
                 enviarMensajesRecientes();
                 enviarMensaje("[Servidor]: ¡Bienvenido, " + nombreUsuario + "!");
                 enviarMensaje("[Servidor]: Para salir del chat, escribe 'salir'.");
-                enviarMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
+             //   enviarMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -142,12 +142,14 @@ public class ServidorChatMejorado {
             while (iterator.hasNext()) {
                 ClienteHandler cliente = iterator.next();
                 if (cliente == this) {
-                    iterator.remove();
+                    System.out.println("un usuario salió con éxito");
+                    broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
+                  //  iterator.remove();
                     break;
                 }
             }
             broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
-            broadcastMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
+          //  broadcastMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
         }
 
         private String obtenerUsuariosConectados() {

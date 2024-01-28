@@ -22,6 +22,7 @@ public class ServidorChatMejorado {
     public static final String CYAN = "\033[0;36m";    // CYAN
     public static final String WHITE = "\033[0;37m";   // WHITE
     private static final String[] COLORES_DISPONIBLES = {RESET, RED, GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE};
+
     public static void main(String[] args) {
         final int PUERTO = 12345;
 
@@ -40,11 +41,14 @@ public class ServidorChatMejorado {
         }
     }
 
+    /**
+     * ClienteHandler: Clase interna que sirve para que los clientes estén en un hilo separado.
+     */
     static class ClienteHandler implements Runnable {
         private Socket socket;
         private PrintWriter salida;
         private String nombreUsuario;
-        private String color="";
+        private String color = "";
 
         public ClienteHandler(Socket socket) {
             this.socket = socket;
@@ -59,12 +63,14 @@ public class ServidorChatMejorado {
                 enviarMensajesRecientes();
                 enviarMensaje("[Servidor]: ¡Bienvenido, " + nombreUsuario + "!");
                 enviarMensaje("[Servidor]: Para salir del chat, escribe 'salir'.");
-             //   enviarMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
+        /**
+         * AsignarColor: Método para asignar los colores a los usuarios.
+         */
         private void asignarColor() {
             for (String color : COLORES_DISPONIBLES) {
                 if (!coloresAsignados.contains(color)) {
@@ -75,6 +81,9 @@ public class ServidorChatMejorado {
             }
         }
 
+        /**
+         * Run: Ejecuta el hilo para cada cliente
+         */
         @Override
         public void run() {
             try (Scanner entrada = new Scanner(socket.getInputStream())) {
@@ -82,7 +91,7 @@ public class ServidorChatMejorado {
                     try {
                         String mensajeCliente = entrada.nextLine();
 
-                        // Comprobar si el usuario quiere salir del chat
+                        // Si se escribe salir en los clientes, el usuario sale del chat.
                         if (mensajeCliente.equalsIgnoreCase("salir")) {
                             salirDelChat();
                             break;
@@ -98,7 +107,7 @@ public class ServidorChatMejorado {
                             almacenarMensaje(color + "[" + nombreUsuario + "]: " + mensajeCliente);
                         }
                     } catch (NoSuchElementException e) {
-                        // El cliente se desconectó inesperadamente
+                        // Captura el fallo si el cliente se desconecta inesperadamente
                         salirDelChat();
                         break;
                     }
@@ -111,32 +120,53 @@ public class ServidorChatMejorado {
             }
         }
 
+        /**
+         * EnviarMensajesReciente: Método para enviar mensajes recientes
+         */
         private void enviarMensajesRecientes() {
             for (String mensaje : mensajesRecientes) {
                 salida.println(mensaje);
             }
         }
 
+        /**
+         * AlmacenarMensaje: Método que sirve para devolver los últimos 50 mensajes a los nuevos usuarios.
+         *
+         * @param mensaje
+         */
         private void almacenarMensaje(String mensaje) {
-            // Almacenar el mensaje en la cola de mensajes recientes
+            // Almacenar el mensaje en la cola de mensajes recientes.
             mensajesRecientes.offer(mensaje);
 
-            // Mantener un máximo de 50 mensajes recientes
+            // Mantener un máximo de 50 mensajes recientes.
             while (mensajesRecientes.size() > 50) {
                 mensajesRecientes.poll();
             }
         }
 
+        /**
+         * EnviarMensaje: Método que envía un mensaje al cliente actual.
+         *
+         * @param mensaje
+         */
         public void enviarMensaje(String mensaje) {
             salida.println(mensaje);
         }
 
+        /**
+         * BroadcastMensaje: Reenvía un mensaje a todos los clientes conectados.
+         *
+         * @param mensaje
+         */
         private void broadcastMensaje(String mensaje) {
             for (ClienteHandler cliente : clientes) {
                 cliente.enviarMensaje(mensaje);
             }
         }
 
+        /**
+         * SalirDelChat: Método para notificar la salida de un usuario al resto de usuarios que están activos
+         */
         private void salirDelChat() {
             Iterator<ClienteHandler> iterator = clientes.iterator();
             while (iterator.hasNext()) {
@@ -144,34 +174,35 @@ public class ServidorChatMejorado {
                 if (cliente == this) {
                     System.out.println("un usuario salió con éxito");
                     broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
-                  //  iterator.remove();
                     break;
                 }
             }
             broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
-          //  broadcastMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
         }
 
-        private String obtenerUsuariosConectados() {
-            StringBuilder usuarios = new StringBuilder();
-            for (ClienteHandler cliente : clientes) {
-                usuarios.append(cliente.nombreUsuario).append(", ");
-            }
-            return usuarios.length() > 2 ? usuarios.substring(0, usuarios.length() - 2) : "Ninguno";
-        }
-
+        /**
+         * ProcesarMensajePrivado: Método que sirve para procesar los mensajes privados
+         *
+         * @param mensaje
+         */
         private void procesarMensajePrivado(String mensaje) {
-            // Obtener el nombre de usuario al que se envía el mensaje privado
+            // Aquí se obtener el nombre de usuario al que se envía el mensaje privado
             int indexEspacio = mensaje.indexOf(' ');
             if (indexEspacio != -1) {
                 String destinatario = mensaje.substring(1, indexEspacio);
                 String mensajePrivado = mensaje.substring(indexEspacio + 1);
 
-                // Enviar el mensaje privado al destinatario
+                // Aquí se envía el mensaje privado al destinatario
                 enviarMensajePrivado(destinatario, "[" + nombreUsuario + " PRIVADO]: " + mensajePrivado);
             }
         }
 
+        /**
+         * EnviarMensajePrivado: Método para enviar mensajes privados a un destinatario concreto
+         *
+         * @param destinatario
+         * @param mensaje
+         */
         private void enviarMensajePrivado(String destinatario, String mensaje) {
             for (ClienteHandler cliente : clientes) {
                 if (cliente.nombreUsuario.equals(destinatario)) {

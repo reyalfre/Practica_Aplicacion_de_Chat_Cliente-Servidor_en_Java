@@ -65,6 +65,7 @@ public class ServidorChatMejorado {
                 enviarMensajesRecientes();
                 enviarMensaje("[Servidor]: ¡Bienvenido, " + nombreUsuario + "!");
                 enviarMensaje("[Servidor]: Para salir del chat, escribe 'salir'.");
+               // enviarMensaje("[Servidor]: Otros usuarios en el chat: " + obtenerUsuariosConectados());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -170,17 +171,24 @@ public class ServidorChatMejorado {
          * SalirDelChat: Método para notificar la salida de un usuario al resto de usuarios que están activos.
          */
         private void salirDelChat() {
-            Iterator<ClienteHandler> iterator = clientes.iterator();
-            while (iterator.hasNext()) {
-                ClienteHandler cliente = iterator.next();
-                if (cliente == this) {
-                    //  System.out.println("un usuario salió con éxito");
-                    broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
-                    break;
+            try{
+                Iterator<ClienteHandler> iterator = clientes.iterator();
+                while (iterator.hasNext()) {
+                    ClienteHandler cliente = iterator.next();
+                    if (cliente == this) {
+                        //  System.out.println("un usuario salió con éxito");
+                        iterator.remove();
+                        broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
+                        break;
+                    }
                 }
+                broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
+                System.out.println("Un usuario ha salido del chat");
+            }catch (UnsupportedOperationException e){
+                System.out.println("El usuario "+nombreUsuario+" ha salido del chat");
+             //  broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
             }
-            broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
-            System.out.println("Un usuario ha salido del chat");
+
         }
 
         /**

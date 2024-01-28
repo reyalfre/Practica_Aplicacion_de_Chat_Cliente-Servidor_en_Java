@@ -84,7 +84,7 @@ public class ServidorChatMejorado {
         }
 
         /**
-         * Run: Ejecuta el hilo para cada cliente
+         * Run: Ejecuta el hilo para cada cliente.
          */
         @Override
         public void run() {
@@ -99,17 +99,17 @@ public class ServidorChatMejorado {
                             break;
                         }
 
-                        // Comprobar si el mensaje es privado
+                        // Comprobar si el mensaje es privado.
                         if (mensajeCliente.startsWith("@")) {
                             procesarMensajePrivado(mensajeCliente);
                         } else {
-                            // Reenviar el mensaje a todos los demás clientes
+                            // Reenviar el mensaje a todos los demás clientes.
                             broadcastMensaje(color + "[" + nombreUsuario + "]: " + mensajeCliente);
                             // Almacenar mensaje
                             almacenarMensaje(color + "[" + nombreUsuario + "]: " + mensajeCliente);
                         }
                     } catch (NoSuchElementException e) {
-                        // Captura el fallo si el cliente se desconecta inesperadamente
+                        // Captura el fallo si el cliente se desconecta inesperadamente.
                         salirDelChat();
                         break;
                     }
@@ -117,13 +117,13 @@ public class ServidorChatMejorado {
             } catch (IOException e) {
                 salirDelChat();
             } finally {
-                // Liberar el color asignado cuando el usuario sale del chat
+                // Liberar el color asignado cuando el usuario sale del chat.
                 coloresAsignados.remove(color);
             }
         }
 
         /**
-         * EnviarMensajesReciente: Método para enviar mensajes recientes
+         * EnviarMensajesReciente: Método para enviar mensajes recientes.
          */
         private void enviarMensajesRecientes() {
             for (String mensaje : mensajesRecientes) {
@@ -167,7 +167,7 @@ public class ServidorChatMejorado {
         }
 
         /**
-         * SalirDelChat: Método para notificar la salida de un usuario al resto de usuarios que están activos
+         * SalirDelChat: Método para notificar la salida de un usuario al resto de usuarios que están activos.
          */
         private void salirDelChat() {
             Iterator<ClienteHandler> iterator = clientes.iterator();
@@ -184,18 +184,18 @@ public class ServidorChatMejorado {
         }
 
         /**
-         * ProcesarMensajePrivado: Método que sirve para procesar los mensajes privados
+         * ProcesarMensajePrivado: Método que sirve para procesar los mensajes privados.
          *
          * @param mensaje
          */
         private void procesarMensajePrivado(String mensaje) {
-            // Aquí se obtener el nombre de usuario al que se envía el mensaje privado
+            // Aquí se obtener el nombre de usuario al que se envía el mensaje privado.
             int indexEspacio = mensaje.indexOf(' ');
             if (indexEspacio != -1) {
                 String destinatario = mensaje.substring(1, indexEspacio);
                 String mensajePrivado = mensaje.substring(indexEspacio + 1);
 
-                // Aquí se envía el mensaje privado al destinatario
+                // Aquí se envía el mensaje privado al destinatario.
                 enviarMensajePrivado(destinatario, "[" + nombreUsuario + " PRIVADO]: " + mensajePrivado);
             }
         }

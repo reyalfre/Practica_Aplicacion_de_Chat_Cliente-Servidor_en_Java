@@ -100,6 +100,8 @@ Tareas:
 
 
    Envío de mensajes privados (2 puntos)
+
+
    En el modo “normal”, todos los mensajes se envían a todos los participantes del chat. Con esta
    ampliación deberemos permitir que, usando el carácter “@” acompañado del Nick del usuario,
    se pueda conseguir que sólo el usuario al que estamos mencionando pueda visualizar dicho
@@ -113,6 +115,8 @@ Tareas:
 
 
    Envío de chat anterior (1 puntos)
+
+
    El servidor deberá ir almacenando los chats enviados en la sesión, y cuando un cliente se
    incorpora, debería enviarle sólo los últimos 50 mensajes hablados hasta ese momento en la
    sesión mientras él no estaba. De esa forma podrá ver lo que se estaba hablando en los últimos

@@ -13,7 +13,7 @@ public class ServidorChatMejorado {
     private static Set<String> coloresAsignados = new HashSet<>();
 
     public static final String RESET = "\033[0m";  // Text Reset
-    public static final String BLACK = "\033[0;30m";   // BLACK
+    //public static final String BLACK = "\033[0;30m";   // BLACK
     public static final String RED = "\033[0;31m";     // RED
     public static final String GREEN = "\033[0;32m";   // GREEN
     public static final String YELLOW = "\033[0;33m";  // YELLOW
@@ -33,12 +33,14 @@ public class ServidorChatMejorado {
                 Socket socketCliente = serverSocket.accept();
                 ClienteHandler clienteHandler = new ClienteHandler(socketCliente);
                 clientes.add(clienteHandler);
+                System.out.println("Nuevo cliente registrado");
                 new Thread(clienteHandler).start();
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("Server finalizado");
     }
 
     /**
@@ -172,12 +174,13 @@ public class ServidorChatMejorado {
             while (iterator.hasNext()) {
                 ClienteHandler cliente = iterator.next();
                 if (cliente == this) {
-                    System.out.println("un usuario salió con éxito");
+                    //  System.out.println("un usuario salió con éxito");
                     broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
                     break;
                 }
             }
             broadcastMensaje("[Servidor]: " + nombreUsuario + " ha salido del chat.");
+            System.out.println("Un usuario ha salido del chat");
         }
 
         /**
